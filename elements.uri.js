@@ -76,7 +76,7 @@ window[D[1]][D[2]](
       "URI" == this.id &&
         (e =
           localStorage.getItem("URIinput") ||
-          "https://raw.githubusercontent.com/urifier/urifier.github.io/main/elements.min.js?-customElements-define-HTMLElement-attachShadow");
+          "https://urifier.github.io/elements.min.js?-"+D.join("-"));
       this.HTML = this.title() + `<input style="width:100%" value="${e}">`;
     }
     connected() {
