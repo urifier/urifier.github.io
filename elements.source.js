@@ -1,8 +1,27 @@
-let URIdictionary_variable = "DDD";
-let URI = "https://urifier.github.io/elements.source.js";
+//let URI = "https://urifier.github.io/elements.source.js";
+let URI = "https://raw.githubusercontent.com/urifier/urifier.github.io/main/elements.min.js";
 let URIStrings = "-customElements-define-HTMLElement-attachShadow-innerHTML-nodeName-querySelector-input-split-render";
 URIStrings = "-customElements-define-HTMLElement-attachShadow";
-class URIElement extends HTMLElement {
+
+function minify(js='Textual content') {
+  (async () => {
+    const rawResponse = await fetch('https://javascript-minifier.com/raw', {
+      method: 'POST',
+       mode: 'no-cors', 
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        input: js
+      })
+    });
+    const content = await rawResponse.json();
+    console.log(666,content);
+  })();
+}
+//minify("let aap=21;");
+class URIElement extends window.HTMLElement {
   constructor() {
     super().attachShadow({
       mode: 'open'
@@ -14,14 +33,20 @@ class URIElement extends HTMLElement {
   get URI() {
     return document.querySelector("uri-input#URI").query("input").value;
   }
+  get DictVar() {
+    return document.querySelector("uri-input#VAR").query("input").value;
+  }
   get source() {
-    return document.querySelector("uri-source").query("textarea").value;
+    let sourceElement = document.querySelector("uri-source");
+    if (sourceElement && sourceElement.query){
+      return sourceElement.query("textarea").innerHTML;
+    }else
+      return "";
   }
   dictionary() {
     return this.URI.split("-");
   }
   connectedCallback() {
-    this.log(this.nodeName);
     this.render();
     this.connected && this.connected();
     this.URIfier.addEventListener("update", (evt) => {
@@ -56,8 +81,8 @@ class URIElement extends HTMLElement {
       detail
     });
   }
-  set HTML(html){
-  	this.shadowRoot.innerHTML = html;
+  set HTML(html) {
+    this.shadowRoot.innerHTML = html;
   }
 }
 class URITextarea extends URIElement {
@@ -65,6 +90,7 @@ class URITextarea extends URIElement {
     fetch(this.URI)
       .then(res => res.text())
       .then(txt => {
+        console.warn("%c fetched ", "background:gold", txt.length, "Bytes", this.URI);
         this.setText(txt)
         this.dispatchUpdate();
       });
@@ -74,29 +100,29 @@ class URITextarea extends URIElement {
     this.HTML = `<style>textarea{width:100%;height:10em}</style>${this.title(this.nodeName+` ${size} Bytes`)}<textarea>${txt}</textarea>`;
   }
 }
-customElements.define('uri-input', class extends URIElement {
+window.customElements.define('uri-input', class extends URIElement {
   render() {
-  	let value="666";
-		if(this.id=="URI") value = localStorage.getItem("URIinput") || URI + "?" + URIStrings;
+    let value = "D";
+    if (this.id == "URI") value = localStorage.getItem("URIinput") || URI + "?" + URIStrings;
     this.HTML = this.title() + `<input style="width:100%" value="${value}">`;
   }
-	connected(){
+  connected() {
     this.query("input").onkeyup = (evt) => {
       this.dispatchUpdate(evt.target.value);
     };
   }
 });
-customElements.define('uri-string', class extends URIElement {
+window.customElements.define('uri-string', class extends URIElement {
   render() {
-  	let str = "." + this.getAttribute("string");
+    let str = "." + this.getAttribute("string");
     let count = this.source.split(new RegExp(str)).length;
-		this.HTML = `<div>${this.getAttribute("idx")}. <b>${count}</b> ${str}</div>`;
+    this.HTML = `<div>${this.getAttribute("idx")}. <b>${count}</b> ${str}</div>`;
   }
   update() {
     this.render();
   }
 });
-customElements.define('uri-dictionary', class extends URIElement {
+window.customElements.define('uri-dictionary', class extends URIElement {
   render() {
     this.URIfier.strings = {};
     let dict = this.dictionary();
@@ -114,25 +140,23 @@ customElements.define('uri-dictionary', class extends URIElement {
     this.render();
   }
 });
-customElements.define('uri-source', class extends URITextarea {
+window.customElements.define('uri-source', class extends URITextarea {
   setText(txt) {
     this.textarea(txt);
   }
 });
-customElements.define('uri-compressed', class extends URITextarea {
+window.customElements.define('uri-compressed', class extends URITextarea {
   setText(txt) {
-    let prefix = "let D=document.currentScript.src.split`-`;";
+    let prefix = "let " + this.DictVar + "=document.currentScript.src.split`-`;";
     //prefix += `let D="X-${this.dictionary().slice(1).join("-")}".split("-");`;
     this.textarea(prefix + txt);
   }
   update() {
     let txt = this.source;
-    console.warn("C")
     Object.keys(this.URIfier.strings).map(str => {
       let data = this.URIfier.strings[str];
       str = "." + str;
-      console.warn("URIfier", str);
-      txt = txt.replaceAll(str, `[${URIdictionary_variable}[${data.idx}]]`)
+      txt = txt.replaceAll(str, `[${this.DictVar}[${data.idx}]]`)
     });
     this.setText(txt);
   }
