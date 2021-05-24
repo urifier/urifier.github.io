@@ -1,26 +1,8 @@
-//let URI = "https://urifier.github.io/elements.source.js";
-let URI = "https://raw.githubusercontent.com/urifier/urifier.github.io/main/elements.min.js";
+// example URI
+let URI = "https://urifier.github.io/elements.min.js";
+// all strings to be replaced
 let URIStrings = "-customElements-define-HTMLElement-attachShadow-innerHTML-nodeName-querySelector-input-split-render";
-URIStrings = "-customElements-define-HTMLElement-attachShadow";
 
-function minify(js='Textual content') {
-  (async () => {
-    const rawResponse = await fetch('https://javascript-minifier.com/raw', {
-      method: 'POST',
-       mode: 'no-cors', 
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        input: js
-      })
-    });
-    const content = await rawResponse.json();
-    console.log(666,content);
-  })();
-}
-//minify("let aap=21;");
 class URIElement extends window.HTMLElement {
   constructor() {
     super().attachShadow({
@@ -30,15 +12,18 @@ class URIElement extends window.HTMLElement {
   title(txt = this.nodeName) {
     return `<h4 style="margin:5px 0">${txt}</h4>`;
   }
+  inputValue(id){
+  	return document.querySelector(`uri-input#`+id).query("input").value;
+  }
   get URI() {
-    return document.querySelector("uri-input#URI").query("input").value;
+    return this.inputValue("URI");
   }
   get DictVar() {
-    return document.querySelector("uri-input#VAR").query("input").value;
+    return this.inputValue("VAR");
   }
   get source() {
     let sourceElement = document.querySelector("uri-source");
-    if (sourceElement && sourceElement.query){
+    if (sourceElement.shadowRoot){
       return sourceElement.query("textarea").innerHTML;
     }else
       return "";
@@ -104,7 +89,7 @@ window.customElements.define('uri-input', class extends URIElement {
   render() {
     let value = "D";
     if (this.id == "URI") value = localStorage.getItem("URIinput") || URI + "?" + URIStrings;
-    this.HTML = this.title() + `<input style="width:100%" value="${value}">`;
+    this.HTML = this.title(this.getAttribute("title")) + `<input style="width:100%" value="${value}">`;
   }
   connected() {
     this.query("input").onkeyup = (evt) => {
@@ -145,7 +130,7 @@ window.customElements.define('uri-source', class extends URITextarea {
     this.textarea(txt);
   }
 });
-window.customElements.define('uri-compressed', class extends URITextarea {
+window.customElements.define('uri-fied', class extends URITextarea {
   setText(txt) {
     let prefix = "let " + this.DictVar + "=document.currentScript.src.split`-`;";
     //prefix += `let D="X-${this.dictionary().slice(1).join("-")}".split("-");`;
